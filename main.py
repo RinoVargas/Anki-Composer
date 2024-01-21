@@ -9,11 +9,8 @@ SHEET_NAMES = ["SHEET_1", "SHEET_2", "SHEET_3", "SHEET_4", "SHEET_5"]
 def main():
     url = f'https://docs.google.com/spreadsheet/ccc?key={SAMPLE_SPREADSHEET_ID}&output=xlsx'
 
-    for sheet_name in SHEET_NAMES:
-        print(f"Loading sheet {sheet_name}...")
-        generation.generate_audio_by_sheet(url, sheet_name)
-        print(f"Audio generated to sheet '{sheet_name}'!")
-
+    main_df = generation.merge_sheets(url, SHEET_NAMES)
+    generation.generate_audio_by_row(main_df)
     print("End!")
 
 

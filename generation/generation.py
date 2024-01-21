@@ -1,5 +1,7 @@
 from speech import speech
 import pandas as pd
+from os import path, getcwd
+
 
 def generate_audio_by_sheet(url, sheet_name):
     df = pd.read_excel(url, sheet_name, index_col="#")
@@ -18,3 +20,21 @@ def generate_audios(row):
 
 def format_audio_name(raw_audio_name):
     return raw_audio_name.replace("[sound:", "").replace("]", "")
+
+
+def merge_sheets(url, sheet_names):
+    df = None
+    for sheet_name in sheet_names:
+        df = sheet_to_df(url, sheet_name) if df is None else df.append(sheet_to_df(url, sheet_name), ignore_index=True)
+
+    return df
+
+
+def sheet_to_df(url, sheet_name):
+    return pd.read_excel(url, sheet_name, index_col="#")
+
+
+def to_tsv_file(df, filename, base_path=None):
+    filepath = getcwd() if base_path is None else base_path
+    filename = path.join(filepath, filename)
+    df.to_csv(filename, sep="\t", encoding='utf-8-sig')
