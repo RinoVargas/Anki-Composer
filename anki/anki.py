@@ -2,14 +2,14 @@ import genanki
 import random
 import os
 from generation import generation
+import logger
+
+logger = logger.get_new_logger("anki")
 
 
 def create_anki_deck_from_sheet(url, sheets, predefined_template):
     main_df = generation.merge_sheets(url, sheets)
-
-    if predefined_template.get_audio_folder() is not None:
-        generation.generate_audio_by_row(main_df, predefined_template)
-
+    generation.generate_audio_by_row(main_df, predefined_template)
     __write_package(main_df, predefined_template)
 
 
@@ -32,8 +32,6 @@ def __create_model(df, predefined_template):
 
 
 def __write_package(df, predefined_template):
-    if not os.path.exists(predefined_template.get_audio_folder()):
-        raise Exception(f"The path '{predefined_template.get_audio_folder()}' doesn't exist")
 
     model = __create_model(df, predefined_template)
     deck = __create_deck_from_df(predefined_template.get_deck_name(), df, model)

@@ -8,7 +8,7 @@ from os import path
 import os
 
 
-def text_to_speech(text, filename, audio_folder_path=None):
-    filename_path = filename if audio_folder_path is None else path.join(audio_folder_path, filename)
+def text_to_speech(text, filename, audio_folder_path):
+    filename_path = path.join(audio_folder_path, filename)
     myobj = gTTS(text, lang='en', slow=False)
     myobj.save(filename_path)

@@ -1,9 +1,11 @@
+import os.path
+
 from speech import speech
 import pandas as pd
 from os import path, getcwd
 import logger
 
-logger = logger.get_new_logger()
+logger = logger.get_new_logger("generation")
 
 
 def generate_audio_by_sheet(url, sheet_name, predefined_template):
@@ -12,6 +14,15 @@ def generate_audio_by_sheet(url, sheet_name, predefined_template):
 
 
 def generate_audio_by_row(df, predefined_template):
+
+    if predefined_template.get_audio_folder() is None:
+        return
+
+    if not os.path.exists(predefined_template.get_audio_folder()):
+        logger.warning(f"The audio folder path '{predefined_template.get_audio_folder()}' doesnt' exist")
+        predefined_template.set_audio_folder(None)
+        return
+
     for index, row in df.iterrows():
         generate_audio_from_fields(row, predefined_template)
         logger.info(f"Row {index} done")
