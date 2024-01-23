@@ -8,7 +8,7 @@ def create_anki_deck_from_sheet(url, sheets, predefined_template):
     main_df = generation.merge_sheets(url, sheets)
 
     if predefined_template.get_audio_folder() is not None:
-        generation.generate_audio_by_row(main_df, target_folder=predefined_template.get_audio_folder())
+        generation.generate_audio_by_row(main_df, predefined_template)
 
     __write_package(main_df, predefined_template)
 

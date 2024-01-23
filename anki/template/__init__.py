@@ -1,1 +1,1 @@
-from .predefined_template import PredefinedTemplate
+from .predefined_template import PredefinedTemplate, TemplateField
