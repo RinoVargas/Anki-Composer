@@ -28,6 +28,7 @@ class DeckSpecificationFieldType:
 
 class DeckInputType:
     GSHEET = 'gsheet'
+    XLSX = 'xlsx'
 
 
 class DeckSpecificationField:

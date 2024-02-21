@@ -24,7 +24,8 @@ def __create_anki_deck_from_sheet(input_data: InputData, spec: DeckSpecification
 
 def __create_reader(spec: DeckSpecification) -> InputReader | None:
     readers: dict[str, InputReader] = {
-        DeckInputType.GSHEET: GSheetInputReader(spec)
+        DeckInputType.GSHEET: GSheetInputReader(spec),
+        DeckInputType.XLSX: GSheetInputReader(spec)
     }
     return readers[spec.input_config.type]
 
