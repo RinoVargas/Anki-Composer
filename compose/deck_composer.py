@@ -17,12 +17,14 @@ class DeckComposer:
         self._file_path = file_path
 
     def compose(self):
-
-        self.validate()
-        self._specifications = composer_parser.parse(self._file_path)
+        self.generate_specifications()
 
         for spec in self._specifications:
             builder.build(spec)
+
+    def generate_specifications(self):
+        self.validate()
+        self._specifications = composer_parser.parse(self._file_path)
 
     def validate(self):
         if self._file_path is None or not self._file_path:
