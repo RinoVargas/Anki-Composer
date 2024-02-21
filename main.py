@@ -1,18 +1,12 @@
-import os
-from anki import anki
-from anki.template.examples import ENGLISH_GOLDEN_LIST
+import sys
 
-SAMPLE_SPREADSHEET_ID = "YOUR_SAMPLE_SPREADSHEET_ID"
-BASE_PATH = os.getcwd()
-SHEET_NAMES = ["SHEET_1", "SHEET_2", "SHEET_3", "SHEET_4", "SHEET_5"]
+from compose.deck_composer import DeckComposer
 
 
 def main():
-    url = f'https://docs.google.com/spreadsheet/ccc?key={SAMPLE_SPREADSHEET_ID}&output=xlsx'
-
-    ENGLISH_GOLDEN_LIST.set_audio_folder("/my/audio/folder")
-    anki.create_anki_deck_from_sheet(url, SHEET_NAMES, ENGLISH_GOLDEN_LIST)
-    print("End!")
+    deck_composer_file = sys.argv[1]
+    compose = DeckComposer(deck_composer_file)
+    compose.compose()
 
 
 if __name__ == "__main__":
