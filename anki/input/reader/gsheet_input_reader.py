@@ -11,7 +11,7 @@ class GSheetInputReader(InputReader):
 
     def read_input(self):
         data = InputData()
-        df: pd.DataFrame = _merge_sheets(self._spec.input_config.url, [sheet_name for sheet_name in self._spec.input_config.sheets])
+        df: pd.DataFrame = _merge_sheets(self._spec.input_config.file_path, [sheet_name for sheet_name in self._spec.input_config.sheets])
         data.records = [record for record in self.__iter_records(df)]
 
         return data

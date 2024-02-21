@@ -3,12 +3,12 @@ from typing import Final
 
 class DeckInputConfig:
     type: str = None
-    url: str = None
+    file_path: str = None
     sheets: list[str] = []
 
-    def __init__(self, input_type: str, url: str, sheets=None):
+    def __init__(self, input_type: str, file_path=None, sheets=None):
         self.type = input_type
-        self.url = url
+        self.file_path = file_path
         self.sheets = [] if sheets is None else sheets
 
 
@@ -58,7 +58,7 @@ class DeckSpecification:
         self.deck_name = deck_spec_dict["deck_name"]
         self.input_config = DeckInputConfig(
             input_type=input_dict["type"],
-            url=input_dict["url"],
+            file_path=input_dict["file_path"],
             sheets=input_dict.setdefault('sheets', None)
         )
         self.media_folder_path = deck_spec_dict['media_folder_path']
