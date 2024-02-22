@@ -34,13 +34,14 @@ def __write_package(input_data: InputData, spec: DeckSpecification):
     model: genanki.Model = __create_model(spec)
     deck = __create_deck(spec.deck_name, input_data, model)
     package = genanki.Package(deck)
+    output_filename = os.path.join(spec.output_config.folder_path, spec.deck_name)
 
     if spec.media_folder_path is not None:
         media_files = [os.path.join(spec.media_folder_path, media_file) for media_file in
                        os.listdir(spec.media_folder_path)]
         package.media_files = media_files
 
-    package.write_to_file(f'{spec.deck_name}.apkg')
+    package.write_to_file(f'{output_filename}.apkg')
 
 
 def __generate_id():
