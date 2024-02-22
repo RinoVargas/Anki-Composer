@@ -26,7 +26,6 @@ def __generate_audio_from_fields(record: InputDataRecord, spec: DeckSpecificatio
     audio_fields: list[DeckSpecificationField] = list(filter(lambda x: x.field_type == 'AUDIO', spec.fields))
 
     if not audio_fields:
-        logger.warning(f"There aren't audio fields defined in the template")
         return
 
     for audio_field in audio_fields:
