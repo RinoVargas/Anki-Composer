@@ -1,6 +1,27 @@
 from typing import Final
 
 
+class GenericTemplate:
+    value: str | None
+    file_path: str | None
+
+    def __init__(self, data: dict):
+        self.value = data.setdefault("value", None)
+        self.html_file = data.setdefault("file_path", None)
+
+
+class FrontTemplate(GenericTemplate):
+
+    def __init__(self, data: dict):
+        super().__init__(data)
+
+
+class BackTemplate(GenericTemplate):
+
+    def __init__(self, data: dict):
+        super().__init__(data)
+
+
 class DeckInputConfig:
     type: str = None
     file_path: str = None
@@ -49,8 +70,8 @@ class DeckSpecification:
     input_config: DeckInputConfig = None
     media_folder_path: str = None
     fields: list[DeckSpecificationField] = []
-    front_template = None
-    back_template = None
+    front_template: FrontTemplate = None
+    back_template: BackTemplate = None
     output_config: DeckOutputConfig = None
 
     def __init__(self, deck_spec_dict: dict):
@@ -64,8 +85,8 @@ class DeckSpecification:
         )
         self.media_folder_path = deck_spec_dict['media_folder_path']
         self.collect_fields(deck_spec_dict["fields"])
-        self.front_template = deck_spec_dict['front_template']
-        self.back_template = deck_spec_dict['back_template']
+        self.front_template = FrontTemplate(deck_spec_dict['front_template'])
+        self.back_template = BackTemplate(deck_spec_dict['back_template'])
         self.output_config = DeckOutputConfig(
             folder_path=deck_spec_dict['output']['folder_path'],
             filename=deck_spec_dict['output']['filename']
@@ -79,6 +100,6 @@ class DeckSpecification:
             related_text_field_name=deck_spec_dict[key].get("related_text_field_name")) for key in deck_spec_dict.keys()
         ]
 
-    def find_spec_field_by_reference_name(self, reference_name : str):
+    def find_spec_field_by_reference_name(self, reference_name: str):
         result = list(filter(lambda x: x.reference_name == reference_name, self.fields))
         return None if len(result) == 0 else result[0]

@@ -1,8 +1,10 @@
+import functools
+
 import logger
 from anki.input.input_data import InputData
 from anki.input.reader.gsheet_input_reader import GSheetInputReader
 from anki.input.reader.input_reader import InputReader
-from compose.deck_specification import DeckSpecification, DeckInputType
+from compose.deck_specification import DeckSpecification, DeckInputType, GenericTemplate
 import random
 import genanki
 import os
@@ -56,10 +58,30 @@ def __create_model(spec: DeckSpecification):
         templates=[
             {
                 'name': spec.deck_name,
-                'qfmt': spec.front_template,
-                'afmt': spec.back_template,
+                'qfmt': __template_to_string(spec.front_template),
+                'afmt': __template_to_string(spec.back_template),
             },
         ])
+
+
+def __template_to_string(template: GenericTemplate):
+    if template.file_path is not None:
+        return html_file_to_string(template.file_path)
+
+    return template.value
+
+
+def html_file_to_string(file_path : str):
+    try:
+        html_file = open(file_path, 'r')
+
+    except Exception as e:
+        raise RuntimeError(f"It has occurred an error when the template file was opened: {e}")
+
+    with html_file:
+        value = functools.reduce(lambda a, b: a + b, html_file.readlines())
+        html_file.close()
+        return value
 
 
 def __create_deck(name: str, input_data: InputData, model: genanki.Model):

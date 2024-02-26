@@ -1,7 +1,9 @@
 import unittest
-from test import XLSX_COMPOSER_FILE_PATH
+
+from anki import deck_builder
+from test import XLSX_COMPOSER_FILE_PATH, FRONTEND_TEMPLATE_FILE_PATH, BACK_TEMPLATE_FILE_PATH
 from compose.deck_composer import DeckComposer
-from compose.deck_specification import DeckSpecificationField, DeckInputConfig, DeckOutputConfig
+from compose.deck_specification import DeckSpecificationField, DeckInputConfig, DeckOutputConfig, FrontTemplate, BackTemplate
 
 
 class DeckComposerTest(unittest.TestCase):
@@ -25,9 +27,18 @@ class DeckComposerTest(unittest.TestCase):
     def test_composer_specification_back_template_value(self):
         composer = DeckComposerTest.__create_composer()
         result = getattr(composer, '_specifications')
-        back_template = getattr(result[0], 'back_template')
-        self.assertEquals(back_template,
+        back_template: BackTemplate | None = getattr(result[0], 'back_template')
+        self.assertIsNotNone(back_template)
+        self.assertEquals(back_template.value,
                           '<i>Meaning:</i> {{MEANING}}\n<hr id=answer>\n<i>Examples:</i> \n<ul>\n        <li>{{EXAMPLE 1}} {{AUDIO 1}}</li>\n        <li>{{EXAMPLE 2}} {{AUDIO 2}}</li>\n        <li>{{EXAMPLE 3}} {{AUDIO 3}}</li>\n</ul>\n')
+
+    def test_composer_specification_back_template_file(self):
+        composer = DeckComposerTest.__create_composer()
+        result = getattr(composer, '_specifications')
+        back_template: BackTemplate | None = getattr(result[0], 'back_template')
+        back_template.html_file = BACK_TEMPLATE_FILE_PATH
+        self.assertIsNotNone(back_template)
+        self.assertEquals(deck_builder.html_file_to_string(back_template.html_file), '<div>\n    <p>This is the back_template: {{MEANING}}</p>\n</div>')
 
     def test_composer_specification_deck_name_value(self):
         composer = DeckComposerTest.__create_composer()
@@ -38,9 +49,18 @@ class DeckComposerTest(unittest.TestCase):
     def test_composer_specification_front_template_value(self):
         composer = DeckComposerTest.__create_composer()
         result = getattr(composer, '_specifications')
-        front_template = getattr(result[0], 'front_template')
-        self.assertEquals(front_template,
+        front_template: FrontTemplate | None = getattr(result[0], 'front_template')
+        self.assertIsNotNone(front_template)
+        self.assertEquals(front_template.value,
                           "<div style='font-family: arial; font-size: 25px; text-align: center; color: white;'>{{EXPRESSION}}</div>")
+
+    def test_composer_specification_front_template_file(self):
+        composer = DeckComposerTest.__create_composer()
+        result = getattr(composer, '_specifications')
+        front_template: FrontTemplate | None = getattr(result[0], 'front_template')
+        front_template.html_file = FRONTEND_TEMPLATE_FILE_PATH
+        self.assertIsNotNone(front_template)
+        self.assertEquals(deck_builder.html_file_to_string(front_template.html_file), '<div>\n    <p>This is the frontend_template: {{MEANING}}</p>\n</div>')
 
     def test_composer_specification_media_folder_path_value(self):
         composer = DeckComposerTest.__create_composer()
