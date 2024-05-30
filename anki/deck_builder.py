@@ -65,10 +65,10 @@ def __create_model(spec: DeckSpecification):
 
 
 def __template_to_string(template: GenericTemplate):
-    if template.file_path is not None:
+    if template["file_path"] is not None:
         return html_file_to_string(template.file_path)
 
-    return template.value
+    return template["value"]
 
 
 def html_file_to_string(file_path : str):

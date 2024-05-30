@@ -2,12 +2,21 @@ from typing import Final
 
 
 class GenericTemplate:
-    value: str | None
-    file_path: str | None
+    value: str | None = None
+    file_path: str | None = None
 
     def __init__(self, data: dict):
         self.value = data.setdefault("value", None)
         self.html_file = data.setdefault("file_path", None)
+
+    def __getitem__(self, item):
+        if "file_path" == item:
+            return self.file_path
+
+        if "value" == item:
+            return self.value
+
+        raise KeyError(f"Unknown key: {item}")
 
 
 class FrontTemplate(GenericTemplate):
@@ -15,11 +24,17 @@ class FrontTemplate(GenericTemplate):
     def __init__(self, data: dict):
         super().__init__(data)
 
+    def __getitem__(self, item):
+        return super().__getitem__(item)
+
 
 class BackTemplate(GenericTemplate):
 
     def __init__(self, data: dict):
         super().__init__(data)
+
+    def __getitem__(self, item):
+        return super().__getitem__(item)
 
 
 class DeckInputConfig:
