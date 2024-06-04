@@ -20,7 +20,8 @@ def build(spec: DeckSpecification):
 
 
 def __create_anki_deck_from_sheet(input_data: InputData, spec: DeckSpecification):
-    audio.generate_audio_by_row(input_data, spec)
+    if not spec.disable_audio_generation:
+        audio.generate_audio_by_row(input_data, spec)
     __write_package(input_data, spec)
 
 

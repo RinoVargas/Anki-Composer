@@ -84,6 +84,7 @@ class DeckSpecification:
     deck_name: str = None
     input_config: DeckInputConfig = None
     media_folder_path: str = None
+    disable_audio_generation: bool
     fields: list[DeckSpecificationField] = []
     front_template: FrontTemplate = None
     back_template: BackTemplate = None
@@ -99,6 +100,7 @@ class DeckSpecification:
             sheets=input_dict.setdefault('sheets', None)
         )
         self.media_folder_path = deck_spec_dict['media_folder_path']
+        self.disable_audio_generation = not not deck_spec_dict.get('disable_audio_generation')
         self.collect_fields(deck_spec_dict["fields"])
         self.front_template = FrontTemplate(deck_spec_dict['front_template'])
         self.back_template = BackTemplate(deck_spec_dict['back_template'])
