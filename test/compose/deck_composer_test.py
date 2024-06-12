@@ -30,7 +30,7 @@ class DeckComposerTest(unittest.TestCase):
         back_template: BackTemplate | None = getattr(result[0], 'back_template')
         self.assertIsNotNone(back_template)
         self.assertEquals(back_template.value,
-                          '<i>Meaning:</i> {{MEANING}}\n<hr id=answer>\n<i>Examples:</i> \n<ul>\n        <li>{{EXAMPLE 1}} {{AUDIO 1}}</li>\n        <li>{{EXAMPLE 2}} {{AUDIO 2}}</li>\n        <li>{{EXAMPLE 3}} {{AUDIO 3}}</li>\n</ul>\n')
+                          '<i>Meaning:</i> {{MEANING}}\n<hr id=answer>\n<i>Examples:</i> \n<ul>\n        <li>{{EXAMPLE_1}} {{$_EXAMPLE_1}}</li>\n        <li>{{EXAMPLE_2}} {{$_EXAMPLE_2}}</li>\n        <li>{{EXAMPLE_3}} {{$_EXAMPLE_3}}</li>\n</ul>\n')
 
     def test_composer_specification_back_template_file(self):
         composer = DeckComposerTest.__create_composer()
@@ -76,21 +76,28 @@ class DeckComposerTest(unittest.TestCase):
 
         self.assertEquals(field.field_type, 'TEXT')
         self.assertEquals(field.name, 'EXPRESSION')
-        self.assertEquals(field.reference_name, 'expression')
-        self.assertEquals(field.related_text_field_name, None)
 
     def test_composer_specification_audio_field_value(self):
         composer = DeckComposerTest.__create_composer()
         result = getattr(composer, '_specifications')
         fields = getattr(result[0], 'fields')
 
-        self.assertIsNotNone(fields[0], None)
-        field: DeckSpecificationField = fields[5]
+        field_1: DeckSpecificationField = fields[2]
+        field_2: DeckSpecificationField = fields[3]
+        field_3: DeckSpecificationField = fields[4]
 
-        self.assertEqual(field.field_type, 'AUDIO')
-        self.assertEqual(field.name, 'AUDIO 1')
-        self.assertEqual(field.reference_name, 'audio_1')
-        self.assertEqual(field.related_text_field_name, 'example_1')
+        self.assertIsNotNone(field_1, None)
+        self.assertIsNotNone(field_2, None)
+        self.assertIsNotNone(field_3, None)
+
+        self.assertEqual(field_1.field_type, 'AUDIO')
+        self.assertEqual(field_1.name, 'EXAMPLE_1')
+
+        self.assertEqual(field_2.field_type, 'AUDIO')
+        self.assertEqual(field_2.name, 'EXAMPLE_2')
+
+        self.assertEqual(field_3.field_type, 'AUDIO')
+        self.assertEqual(field_3.name, 'EXAMPLE_3')
 
     def test_composer_specification_input_config_value(self):
         composer = DeckComposerTest.__create_composer()

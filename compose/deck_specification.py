@@ -68,16 +68,12 @@ class DeckInputType:
 
 
 class DeckSpecificationField:
-    reference_name: str
     name: str
     field_type: str
-    related_text_field_name: str | None
 
-    def __init__(self, reference_name: str, name: str, field_type: str | None, related_text_field_name: str | None):
-        self.reference_name = reference_name
+    def __init__(self, name: str, field_type: str | None = None):
         self.name = name
         self.field_type = DeckSpecificationFieldType.TEXT if field_type is None else field_type
-        self.related_text_field_name = related_text_field_name
 
 
 class DeckSpecification:
@@ -111,12 +107,12 @@ class DeckSpecification:
 
     def collect_fields(self, deck_spec_dict: dict):
         self.fields = [DeckSpecificationField(
-            reference_name=key,
             name=deck_spec_dict[key]["name"],
-            field_type=deck_spec_dict[key].get("field_type"),
-            related_text_field_name=deck_spec_dict[key].get("related_text_field_name")) for key in deck_spec_dict.keys()
+            field_type=deck_spec_dict[key].get("field_type")) for key in deck_spec_dict.keys()
         ]
 
-    def find_spec_field_by_reference_name(self, reference_name: str):
-        result = list(filter(lambda x: x.reference_name == reference_name, self.fields))
-        return None if len(result) == 0 else result[0]
+    def add_spec_field(self, spec_field: DeckSpecificationField):
+        self.fields.append(spec_field)
+
+    def get_spec_fields_by_type(self, field_type: str):
+        return list(filter(lambda x: x.field_type == field_type, self.fields))
