@@ -74,7 +74,7 @@ class DeckComposerTest(unittest.TestCase):
         fields = getattr(result[0], 'fields')
         field: DeckSpecificationField = fields[0]
 
-        self.assertEquals(field.field_type, 'TEXT')
+        self.assertEquals(field.generate_audio_file, False)
         self.assertEquals(field.name, 'EXPRESSION')
 
     def test_composer_specification_audio_field_value(self):
@@ -90,13 +90,13 @@ class DeckComposerTest(unittest.TestCase):
         self.assertIsNotNone(field_2, None)
         self.assertIsNotNone(field_3, None)
 
-        self.assertEqual(field_1.field_type, 'AUDIO')
+        self.assertEqual(field_1.generate_audio_file, True)
         self.assertEqual(field_1.name, 'EXAMPLE_1')
 
-        self.assertEqual(field_2.field_type, 'AUDIO')
+        self.assertEqual(field_2.generate_audio_file, True)
         self.assertEqual(field_2.name, 'EXAMPLE_2')
 
-        self.assertEqual(field_3.field_type, 'AUDIO')
+        self.assertEqual(field_3.generate_audio_file, True)
         self.assertEqual(field_3.name, 'EXAMPLE_3')
 
     def test_composer_specification_input_config_value(self):

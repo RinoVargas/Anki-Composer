@@ -11,7 +11,7 @@ logger = logger.get_new_logger("audio")
 
 def generate_audio_by_row(input_data: InputData, spec: DeckSpecification):
     audio_folder_path = spec.media_folder_path
-    spec_fields_by_audio: list[DeckSpecificationField] = spec.get_spec_fields_by_type(DeckSpecificationFieldType.AUDIO)
+    spec_fields_by_audio: list[DeckSpecificationField] = __get_fields_by_audio_file_generation(spec)
     __add_spec_audio_fields(spec, spec_fields_by_audio)
 
     if audio_folder_path is None:
@@ -25,6 +25,10 @@ def generate_audio_by_row(input_data: InputData, spec: DeckSpecification):
     for index, record in enumerate(input_data.records):
         __generate_audio_from_fields(record, spec, spec_fields_by_audio)
         logger.info(f"Row {index} done")
+
+
+def __get_fields_by_audio_file_generation(spec: DeckSpecification):
+    return list(filter(lambda x: x.generate_audio_file, spec.fields))
 
 
 def __generate_audio_from_fields(record: InputDataRecord, spec: DeckSpecification,

@@ -16,13 +16,13 @@ decks:
         name: 'MEANING'
       example_1:
         name: 'EXAMPLE_1'
-        field_type: "AUDIO"
+        generate_audio_file: true
       example_2:
         name: 'EXAMPLE_2'
-        field_type: "AUDIO"
+        generate_audio_file: true
       example_3:
         name: 'EXAMPLE_3'
-        field_type: "AUDIO"
+        generate_audio_file: true
     front_template:
       value: "<div style='font-family: arial; font-size: 25px; text-align: center; color: white;'>{{EXPRESSION}}</div>"
     back_template:
