@@ -12,9 +12,16 @@ class InputDataRecord:
     def __init__(self, rows: list[InputDataField]):
         self.fields = rows
 
-    def find_field_by_name(self, field_name: str):
+    def find_field_by_name(self, field_name: str) -> InputDataField | None:
         result = list(filter(lambda x: x.field_name == field_name, self.fields))
-        return None if len(result) == 0 else result[0]
+
+        if len(result) == 0:
+            raise ValueError(f"The field named {field_name} hasn't found.")
+
+        return result[0]
+
+    def add_field(self, field: InputDataField):
+        self.fields.append(field)
 
 
 class InputData:

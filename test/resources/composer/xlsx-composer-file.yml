@@ -15,27 +15,18 @@ decks:
       meaning:
         name: 'MEANING'
       example_1:
-        name: 'EXAMPLE 1'
+        name: 'EXAMPLE_1'
+        generate_audio_file: true
       example_2:
-        name: 'EXAMPLE 2'
+        name: 'EXAMPLE_2'
+        generate_audio_file: true
       example_3:
-        name: 'EXAMPLE 3'
-      audio_1:
-        name: 'AUDIO 1'
-        field_type: "AUDIO"
-        related_text_field_name: example_1
-      audio_2:
-        name: 'AUDIO 2'
-        field_type: "AUDIO"
-        related_text_field_name: example_2
-      audio_3:
-        name: 'AUDIO 3'
-        field_type: "AUDIO"
-        related_text_field_name: example_3
+        name: 'EXAMPLE_3'
+        generate_audio_file: true
     front_template:
       value: "<div style='font-family: arial; font-size: 25px; text-align: center; color: white;'>{{EXPRESSION}}</div>"
     back_template:
-      value: "<i>Meaning:</i> {{MEANING}}\n<hr id=answer>\n<i>Examples:</i> \n<ul>\n        <li>{{EXAMPLE 1}} {{AUDIO 1}}</li>\n        <li>{{EXAMPLE 2}} {{AUDIO 2}}</li>\n        <li>{{EXAMPLE 3}} {{AUDIO 3}}</li>\n</ul>\n"
+      value: "<i>Meaning:</i> {{MEANING}}\n<hr id=answer>\n<i>Examples:</i> \n<ul>\n        <li>{{EXAMPLE_1}} {{$_EXAMPLE_1}}</li>\n        <li>{{EXAMPLE_2}} {{$_EXAMPLE_2}}</li>\n        <li>{{EXAMPLE_3}} {{$_EXAMPLE_3}}</li>\n</ul>\n"
     output:
       folder_path: "/my/output/folder"
       filename: "my-package.dpkg"

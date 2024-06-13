@@ -28,10 +28,9 @@ class GSheetInputReader(InputReader):
 def _merge_sheets(url: str, sheet_names: list[str]):
     df = None
     for sheet_name in sheet_names:
-        df = _sheet_to_df(url, sheet_name) if df is None else df.append(_sheet_to_df(url, sheet_name),
-                                                                       ignore_index=True)
+        df = _sheet_to_df(url, sheet_name) if df is None else df.append(_sheet_to_df(url, sheet_name))
     return df
 
 
 def _sheet_to_df(url: str, sheet_name: str):
-    return pd.read_excel(url, sheet_name, index_col="#")
+    return pd.read_excel(url, sheet_name)

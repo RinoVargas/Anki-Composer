@@ -68,16 +68,31 @@ class DeckInputType:
 
 
 class DeckSpecificationField:
-    reference_name: str
     name: str
-    field_type: str
-    related_text_field_name: str | None
+    generate_audio_file: bool
 
-    def __init__(self, reference_name: str, name: str, field_type: str | None, related_text_field_name: str | None):
-        self.reference_name = reference_name
+    def __init__(self, name: str):
         self.name = name
-        self.field_type = DeckSpecificationFieldType.TEXT if field_type is None else field_type
-        self.related_text_field_name = related_text_field_name
+        self.generate_audio_file = False
+
+
+class DeckSpecificationFieldBuilder:
+    __field = None
+
+    def __init__(self, field: DeckSpecificationField):
+        self.__field = field
+
+    @staticmethod
+    def new_field(name: str):
+        builder = DeckSpecificationFieldBuilder(DeckSpecificationField(name))
+        return builder
+
+    def generate_audio_file(self, generate_audio_file: bool):
+        self.__field.generate_audio_file = generate_audio_file
+        return self
+
+    def build(self) -> DeckSpecificationField:
+        return self.__field
 
 
 class DeckSpecification:
@@ -110,13 +125,16 @@ class DeckSpecification:
         )
 
     def collect_fields(self, deck_spec_dict: dict):
-        self.fields = [DeckSpecificationField(
-            reference_name=key,
-            name=deck_spec_dict[key]["name"],
-            field_type=deck_spec_dict[key].get("field_type"),
-            related_text_field_name=deck_spec_dict[key].get("related_text_field_name")) for key in deck_spec_dict.keys()
-        ]
+        self.fields = list(map(lambda key: DeckSpecification.__map_field(deck_spec_dict, key) ,deck_spec_dict.keys()))
 
-    def find_spec_field_by_reference_name(self, reference_name: str):
-        result = list(filter(lambda x: x.reference_name == reference_name, self.fields))
-        return None if len(result) == 0 else result[0]
+    @staticmethod
+    def __map_field(deck_spec_dict: dict, key: str):
+        name = deck_spec_dict[key]["name"]
+        generate_audio_file = not not deck_spec_dict[key].get("generate_audio_file")
+
+        return (DeckSpecificationFieldBuilder.new_field(name)
+                .generate_audio_file(generate_audio_file)
+                .build())
+
+    def add_spec_field(self, spec_field: DeckSpecificationField):
+        self.fields.append(spec_field)
