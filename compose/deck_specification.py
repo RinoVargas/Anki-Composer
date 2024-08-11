@@ -52,9 +52,9 @@ class DeckOutputConfig:
     folder_path: str = None
     filename: str | None = None
 
-    def __init__(self, folder_path: str, filename: str | None = None):
-        self.folder_path = folder_path
-        self.filename = filename
+    def __init__(self, output_config: dict):
+        self.folder_path = output_config.get('folder_path')
+        self.filename = output_config.setdefault('filename', None)
 
 
 class DeckSpecificationFieldType:
@@ -119,10 +119,7 @@ class DeckSpecification:
         self.collect_fields(deck_spec_dict["fields"])
         self.front_template = FrontTemplate(deck_spec_dict['front_template'])
         self.back_template = BackTemplate(deck_spec_dict['back_template'])
-        self.output_config = DeckOutputConfig(
-            folder_path=deck_spec_dict['output']['folder_path'],
-            filename=deck_spec_dict['output']['filename']
-        )
+        self.output_config = DeckOutputConfig(output_config=deck_spec_dict['output'])
 
     def collect_fields(self, deck_spec_dict: dict):
         self.fields = list(map(lambda key: DeckSpecification.__map_field(deck_spec_dict, key) ,deck_spec_dict.keys()))
