@@ -11,16 +11,20 @@ logger = logger.get_new_logger("audio")
 
 def generate_audio_by_row(input_data: InputData, spec: DeckSpecification):
     audio_folder_path = spec.media_folder_path
-    spec_fields_by_audio: list[DeckSpecificationField] = __get_fields_by_audio_file_generation(spec)
-    __add_spec_audio_fields(spec, spec_fields_by_audio)
 
     if audio_folder_path is None:
         return
 
     if not os.path.exists(audio_folder_path):
         spec.media_folder_path = None
-        logger.warning(f"The audio folder path '{audio_folder_path}' doesnt' exist")
+        logger.warning(f"The audio folder path '{audio_folder_path}' doesn't exist")
         return
+
+    spec_fields_by_audio: list[DeckSpecificationField] = __get_fields_by_audio_file_generation(spec)
+    if not spec_fields_by_audio:
+        return
+
+    __add_spec_audio_fields(spec, spec_fields_by_audio)
 
     for index, record in enumerate(input_data.records):
         __generate_audio_from_fields(record, spec, spec_fields_by_audio)

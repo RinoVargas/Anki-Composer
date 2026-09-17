@@ -3,6 +3,7 @@ import functools
 import logger
 from anki.input.input_data import InputData
 from anki.input.reader.gsheet_input_reader import GSheetInputReader
+from anki.input.reader.csv_input_reader import CSVInputReader
 from anki.input.reader.input_reader import InputReader
 from compose.deck_specification import DeckSpecification, DeckInputType, GenericTemplate
 import random
@@ -28,7 +29,8 @@ def __create_anki_deck_from_sheet(input_data: InputData, spec: DeckSpecification
 def __create_reader(spec: DeckSpecification) -> InputReader | None:
     readers: dict[str, InputReader] = {
         DeckInputType.GSHEET: GSheetInputReader(spec),
-        DeckInputType.XLSX: GSheetInputReader(spec)
+        DeckInputType.XLSX: GSheetInputReader(spec),
+        DeckInputType.CSV: CSVInputReader(spec)
     }
     return readers[spec.input_config.type]
 
@@ -52,13 +54,16 @@ def __write_package(input_data: InputData, spec: DeckSpecification):
     package.write_to_file(f'{output_filename}.apkg')
 
 
-def __generate_id():
-    return random.randrange(1 << 30, 1 << 31)
+import zlib
+
+
+def __generate_id_from_name(name: str) -> int:
+    return zlib.crc32(name.encode('utf-8')) & 0x7FFFFFFF
 
 
 def __create_model(spec: DeckSpecification):
     return genanki.Model(
-        __generate_id(),
+        __generate_id_from_name(f"model_{spec.deck_name}"),
         spec.deck_name,
         fields=[{'name': field.name} for field in spec.fields],
         templates=[
@@ -91,7 +96,7 @@ def html_file_to_string(file_path : str):
 
 
 def __create_deck(name: str, input_data: InputData, model: genanki.Model):
-    deck = genanki.Deck(__generate_id(), name)
+    deck = genanki.Deck(__generate_id_from_name(name), name)
 
     for note in __generate_notes(input_data, model):
         deck.add_note(note)

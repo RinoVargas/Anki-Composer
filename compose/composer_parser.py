@@ -16,11 +16,12 @@ def parse(file_path):
 
     except Exception as e:
         logger.error(f"Error: {e}")
-        raise f'An error occurred during the compose-file reading: {e}'
+        raise RuntimeError(f'An error occurred during the compose-file reading: {e}')
 
     with file:
         compose_dict = yaml.load(file, Loader=yaml.Loader)
         file.close()
+        _validate(compose_dict)
         return _parse_specifications(compose_dict['decks'])
 
 

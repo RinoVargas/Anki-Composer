@@ -1,36 +1,61 @@
+import io
+import requests
+import openpyxl
 from anki.input.input_data import InputData, InputDataRecord
 from anki.input.reader.input_reader import InputReader
 from compose.deck_specification import DeckSpecification
-import pandas as pd
 
 
 class GSheetInputReader(InputReader):
 
-    def __int__(self, spec: DeckSpecification):
-        super(spec)
+    def __init__(self, spec: DeckSpecification):
+        super().__init__(spec)
 
-    def read_input(self):
+    def read_input(self) -> InputData:
         data = InputData()
-        df: pd.DataFrame = _merge_sheets(self._spec.input_config.file_path, [sheet_name for sheet_name in self._spec.input_config.sheets])
-        data.records = [record for record in self.__iter_records(df)]
+        records = []
+        file_path = self._spec.input_config.file_path
+        sheets = self._spec.input_config.sheets
 
+        wb = _load_workbook(file_path)
+
+        sheet_names = sheets if sheets else wb.sheetnames
+
+        for sheet_name in sheet_names:
+            if sheet_name in wb.sheetnames:
+                ws = wb[sheet_name]
+                sheet_records = list(self._parse_worksheet(ws))
+                records.extend(sheet_records)
+
+        wb.close()
+        data.records = records
         return data
 
-    def __iter_records(self, df: pd.DataFrame):
-        for _, row in df.iterrows():
+    def _parse_worksheet(self, ws):
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows:
+            return
+
+        headers = [str(cell).strip() if cell is not None else "" for cell in rows[0]]
+
+        for row_values in rows[1:]:
+            if not any(row_values):
+                continue
+            row_dict = {
+                headers[i]: (str(val) if val is not None else "")
+                for i, val in enumerate(row_values)
+                if i < len(headers)
+            }
             record: InputDataRecord = self._create_record()
             for field in record.fields:
-                field.field_value = row[field.field_name]
-
+                field.field_value = row_dict.get(field.field_name, "")
             yield record
 
 
-def _merge_sheets(url: str, sheet_names: list[str]):
-    df = None
-    for sheet_name in sheet_names:
-        df = _sheet_to_df(url, sheet_name) if df is None else df.append(_sheet_to_df(url, sheet_name))
-    return df
-
-
-def _sheet_to_df(url: str, sheet_name: str):
-    return pd.read_excel(url, sheet_name)
+def _load_workbook(file_path: str) -> openpyxl.Workbook:
+    if file_path.startswith("http://") or file_path.startswith("https://"):
+        response = requests.get(file_path)
+        response.raise_for_status()
+        return openpyxl.load_workbook(filename=io.BytesIO(response.content), data_only=True)
+    else:
+        return openpyxl.load_workbook(filename=file_path, data_only=True)

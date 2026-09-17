@@ -65,6 +65,7 @@ class DeckSpecificationFieldType:
 class DeckInputType:
     GSHEET = 'gsheet'
     XLSX = 'xlsx'
+    CSV = 'csv'
 
 
 class DeckSpecificationField:
