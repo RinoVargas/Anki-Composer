@@ -4,3 +4,4 @@ openpyxl
 pyyaml
 requests
 ttkbootstrap
+pyinstaller

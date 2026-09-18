@@ -14,6 +14,7 @@ class SheetSelector(ttk.LabelFrame):
         super().__init__(master, **kwargs)
         
         self.sheet_vars = {}
+        self.headers = []
         
         self.btn_load_sheets = ttk.Button(self, text="Load Sheets", bootstyle=INFO, command=self._on_load_clicked)
         self.btn_load_sheets.pack(anchor=W, pady=5)
@@ -40,23 +41,47 @@ class SheetSelector(ttk.LabelFrame):
             
         def fetch():
             try:
-                if input_type == "gsheet" or file_path.startswith("http"):
-                    response = requests.get(file_path)
-                    response.raise_for_status()
-                    wb = openpyxl.load_workbook(filename=io.BytesIO(response.content), data_only=True, read_only=True)
+                headers = []
+                sheetnames = []
+                if input_type == "csv":
+                    import csv
+                    if file_path.startswith("http"):
+                        response = requests.get(file_path)
+                        response.raise_for_status()
+                        reader = csv.reader(response.text.splitlines())
+                        headers = next(reader, [])
+                    else:
+                        with open(file_path, newline='', encoding='utf-8') as f:
+                            reader = csv.reader(f)
+                            headers = next(reader, [])
                 else:
-                    if not os.path.isfile(file_path):
-                        raise Exception("Local file not found.")
-                    wb = openpyxl.load_workbook(filename=file_path, data_only=True, read_only=True)
-                    
-                sheetnames = wb.sheetnames
-                wb.close()
-                self.after(0, lambda: self._render_sheets(sheetnames))
+                    if input_type == "gsheet" or file_path.startswith("http"):
+                        response = requests.get(file_path)
+                        response.raise_for_status()
+                        wb = openpyxl.load_workbook(filename=io.BytesIO(response.content), data_only=True, read_only=True)
+                    else:
+                        if not os.path.isfile(file_path):
+                            raise Exception("Local file not found.")
+                        wb = openpyxl.load_workbook(filename=file_path, data_only=True, read_only=True)
+                        
+                    sheetnames = wb.sheetnames
+                    if sheetnames:
+                        ws = wb[sheetnames[0]]
+                        first_row = next(ws.iter_rows(values_only=True), [])
+                        headers = [str(cell).strip() if cell is not None else "" for cell in first_row]
+                    wb.close()
+                
+                self.after(0, lambda: self._on_fetch_success(sheetnames, headers, input_type))
             except Exception as e:
-                self.after(0, lambda: messagebox.showerror("Error", f"Could not load sheets:\n{e}"))
+                self.after(0, lambda: messagebox.showerror("Error", f"Could not load file:\n{e}"))
                 
         threading.Thread(target=fetch, daemon=True).start()
         
+    def _on_fetch_success(self, sheetnames, headers, input_type):
+        if input_type != "csv":
+            self._render_sheets(sheetnames)
+        self.headers = headers
+
     def _render_sheets(self, sheetnames):
         self.clear()
         
@@ -70,6 +95,10 @@ class SheetSelector(ttk.LabelFrame):
         for widget in self.sheets_container.winfo_children():
             widget.destroy()
         self.sheet_vars.clear()
+        self.headers.clear()
 
     def get_selected_sheets(self) -> list[str]:
         return [name for name, var in self.sheet_vars.items() if var.get()]
+        
+    def get_headers(self) -> list[str]:
+        return self.headers

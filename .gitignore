@@ -2,3 +2,8 @@
 .vscode/
 __pycache__/
 *.pyc
+# PyInstaller
+build/
+dist/
+*.spec
+.DS_Store

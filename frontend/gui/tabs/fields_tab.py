@@ -19,7 +19,7 @@ class FieldsTab(ttk.Frame):
         
         ttk.Button(btn_frame, text="Generate Deck", bootstyle=SUCCESS, command=self._on_generate).pack(pady=10)
 
-    def rebuild_fields(self, template_name: str):
+    def rebuild_fields(self, template_name: str, headers: list[str]):
         for widget in self.fields_container.winfo_children():
             widget.destroy()
             
@@ -38,7 +38,13 @@ class FieldsTab(ttk.Frame):
             ttk.Label(row_frame, text=f"{field_def['label']}:", width=20).pack(side=LEFT, padx=5)
             
             var_name = ttk.StringVar()
-            ttk.Entry(row_frame, textvariable=var_name, width=25).pack(side=LEFT, padx=5)
+            cb_field = ttk.Combobox(row_frame, textvariable=var_name, values=headers, state="readonly", width=23)
+            cb_field.pack(side=LEFT, padx=5)
+            
+            # Select first if any available to provide default
+            if headers:
+                # Optional: try to auto-match header to field_def['id'] or just pick the first
+                cb_field.current(0)
             
             var_audio = ttk.BooleanVar(value=False)
             if field_def.get("audio_allowed", False):

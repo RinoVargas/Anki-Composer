@@ -28,7 +28,8 @@ class AnkiComposerGUI(ttk.Window):
         self.notebook.add(self.tab_fields, text="2. Map Fields", state="disabled")
 
     def on_general_next(self, template_name: str):
-        self.tab_fields.rebuild_fields(template_name)
+        headers = self.tab_general.get_headers()
+        self.tab_fields.rebuild_fields(template_name, headers)
         self.notebook.tab(1, state="normal")
         self.notebook.select(1)
 
@@ -92,21 +93,16 @@ class AnkiComposerGUI(ttk.Window):
         return desc
 
     def _execute_generation(self, desc: dict):
-        temp_path = "temp_gui_descriptor.yaml"
+        from backend.compose.deck_specification import DeckSpecification
         try:
-            with open(temp_path, 'w', encoding='utf-8') as f:
-                yaml.dump(desc, f, sort_keys=False)
-                
             def run_generation():
                 try:
-                    composer = DeckComposer(temp_path)
+                    specs = [DeckSpecification(deck_dict) for deck_dict in desc["decks"].values()]
+                    composer = DeckComposer(specifications=specs)
                     composer.compose()
                     messagebox.showinfo("Success", "Deck generated successfully!")
                 except Exception as e:
                     messagebox.showerror("Error", f"An error occurred:\n{e}")
-                finally:
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
                         
             threading.Thread(target=run_generation, daemon=True).start()
         except Exception as e:

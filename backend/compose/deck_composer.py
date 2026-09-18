@@ -13,8 +13,9 @@ class DeckComposer:
     _file_path = None
     _specifications: list[DeckSpecification] = None
 
-    def __init__(self, file_path):
+    def __init__(self, file_path=None, specifications: list[DeckSpecification] = None):
         self._file_path = file_path
+        self._specifications = specifications or []
 
     def compose(self):
         self.generate_specifications()
@@ -23,8 +24,9 @@ class DeckComposer:
             builder.build(spec)
 
     def generate_specifications(self):
-        self.validate()
-        self._specifications = composer_parser.parse(self._file_path)
+        if self._file_path:
+            self.validate()
+            self._specifications = composer_parser.parse(self._file_path)
 
     def validate(self):
         if self._file_path is None or not self._file_path:
