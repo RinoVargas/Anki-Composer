@@ -1,9 +1,9 @@
 import io
 import requests
 import openpyxl
-from anki.input.input_data import InputData, InputDataRecord
-from anki.input.reader.input_reader import InputReader
-from compose.deck_specification import DeckSpecification
+from backend.anki.input.input_data import InputData, InputDataRecord
+from backend.anki.input.reader.input_reader import InputReader
+from backend.compose.deck_specification import DeckSpecification
 
 
 class GSheetInputReader(InputReader):

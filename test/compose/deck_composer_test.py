@@ -1,9 +1,9 @@
 import unittest
 
-from anki import deck_builder
+from backend.anki import deck_builder
 from test import XLSX_COMPOSER_FILE_PATH, FRONTEND_TEMPLATE_FILE_PATH, BACK_TEMPLATE_FILE_PATH
-from compose.deck_composer import DeckComposer
-from compose.deck_specification import DeckSpecificationField, DeckInputConfig, DeckOutputConfig, FrontTemplate, BackTemplate
+from backend.compose.deck_composer import DeckComposer
+from backend.compose.deck_specification import DeckSpecificationField, DeckInputConfig, DeckOutputConfig, FrontTemplate, BackTemplate
 
 
 class DeckComposerTest(unittest.TestCase):
@@ -75,7 +75,7 @@ class DeckComposerTest(unittest.TestCase):
         field: DeckSpecificationField = fields[0]
 
         self.assertEqual(field.generate_audio_file, False)
-        self.assertEqual(field.name, 'EXPRESSION')
+        self.assertEqual(field.column_name, 'EXPRESSION')
 
     def test_composer_specification_audio_field_value(self):
         composer = DeckComposerTest.__create_composer()
@@ -91,13 +91,13 @@ class DeckComposerTest(unittest.TestCase):
         self.assertIsNotNone(field_3, None)
 
         self.assertEqual(field_1.generate_audio_file, True)
-        self.assertEqual(field_1.name, 'EXAMPLE_1')
+        self.assertEqual(field_1.column_name, 'EXAMPLE_1')
 
         self.assertEqual(field_2.generate_audio_file, True)
-        self.assertEqual(field_2.name, 'EXAMPLE_2')
+        self.assertEqual(field_2.column_name, 'EXAMPLE_2')
 
         self.assertEqual(field_3.generate_audio_file, True)
-        self.assertEqual(field_3.name, 'EXAMPLE_3')
+        self.assertEqual(field_3.column_name, 'EXAMPLE_3')
 
     def test_composer_specification_input_config_value(self):
         composer = DeckComposerTest.__create_composer()

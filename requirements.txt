@@ -3,3 +3,4 @@ gTTS
 openpyxl
 pyyaml
 requests
+ttkbootstrap

@@ -69,11 +69,13 @@ class DeckInputType:
 
 
 class DeckSpecificationField:
-    name: str
+    id: str
+    column_name: str
     generate_audio_file: bool
 
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, field_id: str, column_name: str):
+        self.id = field_id
+        self.column_name = column_name
         self.generate_audio_file = False
 
 
@@ -84,8 +86,8 @@ class DeckSpecificationFieldBuilder:
         self.__field = field
 
     @staticmethod
-    def new_field(name: str):
-        builder = DeckSpecificationFieldBuilder(DeckSpecificationField(name))
+    def new_field(field_id: str, column_name: str):
+        builder = DeckSpecificationFieldBuilder(DeckSpecificationField(field_id, column_name))
         return builder
 
     def generate_audio_file(self, generate_audio_file: bool):
@@ -127,10 +129,10 @@ class DeckSpecification:
 
     @staticmethod
     def __map_field(deck_spec_dict: dict, key: str):
-        name = deck_spec_dict[key]["name"]
+        column_name = deck_spec_dict[key]["name"]
         generate_audio_file = not not deck_spec_dict[key].get("generate_audio_file")
 
-        return (DeckSpecificationFieldBuilder.new_field(name)
+        return (DeckSpecificationFieldBuilder.new_field(key, column_name)
                 .generate_audio_file(generate_audio_file)
                 .build())
 
