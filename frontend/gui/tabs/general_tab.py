@@ -16,55 +16,37 @@ class GeneralTab(ttk.Frame):
         self.var_deck_name = ttk.StringVar()
         ttk.Entry(self, textvariable=self.var_deck_name, width=40).grid(row=0, column=1, sticky=W, pady=5)
 
-        ttk.Label(self, text="Workspace Folder:").grid(row=1, column=0, sticky=W, pady=5)
-        self.var_workspace_folder = ttk.StringVar()
-        ttk.Entry(self, textvariable=self.var_workspace_folder, width=40).grid(row=1, column=1, sticky=W, pady=5)
-        ttk.Button(self, text="Browse", command=self._browse_workspace).grid(row=1, column=2, padx=5)
-
-        ttk.Label(self, text="Input Type:").grid(row=2, column=0, sticky=W, pady=5)
+        ttk.Label(self, text="Input Type:").grid(row=1, column=0, sticky=W, pady=5)
         self.var_input_type = ttk.StringVar(value="xlsx")
         cb_type = ttk.Combobox(self, textvariable=self.var_input_type, values=["xlsx", "csv", "gsheet"], state="readonly", width=38)
-        cb_type.grid(row=2, column=1, sticky=W, pady=5)
+        cb_type.grid(row=1, column=1, sticky=W, pady=5)
         cb_type.bind("<<ComboboxSelected>>", self._on_input_type_change)
 
-        ttk.Label(self, text="Input File Path / URL:").grid(row=3, column=0, sticky=W, pady=5)
+        ttk.Label(self, text="Input File Path / URL:").grid(row=2, column=0, sticky=W, pady=5)
         self.var_input_file = ttk.StringVar()
         self.var_input_file.trace_add('write', self._on_input_file_change)
-        ttk.Entry(self, textvariable=self.var_input_file, width=40).grid(row=3, column=1, sticky=W, pady=5)
+        ttk.Entry(self, textvariable=self.var_input_file, width=40).grid(row=2, column=1, sticky=W, pady=5)
         
         self.btn_browse_input = ttk.Button(self, text="Browse", command=lambda: self._browse_file(self.var_input_file))
-        self.btn_browse_input.grid(row=3, column=2, padx=5)
+        self.btn_browse_input.grid(row=2, column=2, padx=5)
 
         # Sheets Selector Frame
         self.sheet_selector = SheetSelector(self)
         
-        ttk.Label(self, text="Media Folder Path:").grid(row=5, column=0, sticky=W, pady=5)
-        self.var_media_folder = ttk.StringVar()
-        ttk.Entry(self, textvariable=self.var_media_folder, width=40).grid(row=5, column=1, sticky=W, pady=5)
-        ttk.Button(self, text="Browse", command=lambda: self._browse_folder(self.var_media_folder)).grid(row=5, column=2, padx=5)
-
-        self.var_disable_audio = ttk.BooleanVar(value=False)
-        ttk.Checkbutton(self, text="Disable Audio Generation", variable=self.var_disable_audio).grid(row=6, column=0, columnspan=2, sticky=W, pady=5)
-
-        ttk.Label(self, text="Output Folder Path:").grid(row=7, column=0, sticky=W, pady=5)
-        self.var_output_folder = ttk.StringVar()
-        ttk.Entry(self, textvariable=self.var_output_folder, width=40).grid(row=7, column=1, sticky=W, pady=5)
-        ttk.Button(self, text="Browse", command=lambda: self._browse_folder(self.var_output_folder)).grid(row=7, column=2, padx=5)
-
-        ttk.Label(self, text="Output Filename (without .apkg):").grid(row=8, column=0, sticky=W, pady=5)
-        self.var_output_filename = ttk.StringVar()
-        ttk.Entry(self, textvariable=self.var_output_filename, width=40).grid(row=8, column=1, sticky=W, pady=5)
-
-        ttk.Label(self, text="Template:").grid(row=9, column=0, sticky=W, pady=5)
+        ttk.Label(self, text="Template:").grid(row=4, column=0, sticky=W, pady=5)
         self.var_template = ttk.StringVar()
-        templates_available = get_template_names()
+        
+        from backend.db import template_repository
+        self._db_templates = template_repository.get_all_templates()
+        templates_available = [t["name"] for t in self._db_templates]
+        
         cb_template = ttk.Combobox(self, textvariable=self.var_template, values=templates_available, state="readonly", width=38)
-        cb_template.grid(row=9, column=1, sticky=W, pady=5)
+        cb_template.grid(row=4, column=1, sticky=W, pady=5)
         if templates_available:
             cb_template.current(0)
 
         btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=10, column=0, columnspan=3, pady=20)
+        btn_frame.grid(row=5, column=0, columnspan=3, pady=20)
         ttk.Button(btn_frame, text="Next: Map Fields ➔", bootstyle=PRIMARY, command=self._validate_and_next).pack()
 
     def _on_input_type_change(self, event=None):
@@ -89,25 +71,10 @@ class GeneralTab(ttk.Frame):
         self.sheet_selector.set_context(input_type, file_path)
         
         if file_path:
-            self.sheet_selector.grid(row=4, column=0, columnspan=3, sticky=EW, pady=5)
+            self.sheet_selector.grid(row=3, column=0, columnspan=3, sticky=EW, pady=5)
         else:
             self.sheet_selector.grid_remove()
             self.sheet_selector.clear()
-
-    def _browse_workspace(self):
-        path = filedialog.askdirectory()
-        if path:
-            self.var_workspace_folder.set(path)
-            self.var_output_folder.set(path)
-            
-            media_path = os.path.join(path, "media")
-            if not os.path.exists(media_path):
-                try:
-                    os.makedirs(media_path)
-                except Exception as e:
-                    messagebox.showerror("Error", f"Could not create media folder:\n{e}")
-                    
-            self.var_media_folder.set(media_path)
 
     def _browse_file(self, string_var):
         input_type = self.var_input_type.get()
@@ -143,31 +110,33 @@ class GeneralTab(ttk.Frame):
             if not os.path.isfile(input_path):
                 messagebox.showerror("Validation Error", f"Input file does not exist locally:\n{input_path}")
                 return
-                
-        if not self.var_output_folder.get().strip():
-            messagebox.showerror("Validation Error", "Output Folder Path cannot be empty.")
-            return
-            
-        if not self.var_output_filename.get().strip():
-            messagebox.showerror("Validation Error", "Output Filename cannot be empty.")
-            return
 
         if not self.var_template.get():
             messagebox.showerror("Validation Error", "Please select a Template.")
             return
             
-        self.on_next_step(self.var_template.get())
+        selected_name = self.var_template.get()
+        selected_id = next((t["id"] for t in self._db_templates if t["name"] == selected_name), None)
+            
+        self.on_next_step(selected_id)
 
     def get_config(self) -> dict:
+        try:
+            from backend.config import app_config
+            media_folder = os.path.join(app_config.get_work_dir(), "media")
+        except Exception:
+            media_folder = ""
+            
+        selected_name = self.var_template.get()
+        selected_id = next((t["id"] for t in self._db_templates if t["name"] == selected_name), None)
+            
         return {
             "deck_name": self.var_deck_name.get().strip(),
             "input_type": self.var_input_type.get(),
             "input_file_path": self.var_input_file.get().strip(),
-            "media_folder_path": self.var_media_folder.get().strip(),
-            "disable_audio_generation": self.var_disable_audio.get(),
-            "output_folder_path": self.var_output_folder.get().strip(),
-            "output_filename": self.var_output_filename.get().strip(),
-            "template_name": self.var_template.get(),
+            "media_folder_path": media_folder,
+            "disable_audio_generation": False,
+            "template_id": selected_id,
             "sheets_list": self.sheet_selector.get_selected_sheets() if self.var_input_type.get() != "csv" else []
         }
 

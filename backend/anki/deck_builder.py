@@ -4,6 +4,7 @@ import backend.logger as logger
 from backend.anki.input.input_data import InputData
 from backend.anki.input.reader.gsheet_input_reader import GSheetInputReader
 from backend.anki.input.reader.csv_input_reader import CSVInputReader
+from backend.anki.input.reader.sqlite_input_reader import SQLiteInputReader
 from backend.anki.input.reader.input_reader import InputReader
 from backend.compose.deck_specification import DeckSpecification, DeckInputType, GenericTemplate
 import random
@@ -30,7 +31,8 @@ def __create_reader(spec: DeckSpecification) -> InputReader | None:
     readers: dict[str, InputReader] = {
         DeckInputType.GSHEET: GSheetInputReader(spec),
         DeckInputType.XLSX: GSheetInputReader(spec),
-        DeckInputType.CSV: CSVInputReader(spec)
+        DeckInputType.CSV: CSVInputReader(spec),
+        'sqlite': SQLiteInputReader(spec)
     }
     return readers[spec.input_config.type]
 
