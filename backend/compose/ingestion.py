@@ -20,17 +20,18 @@ def _get_reader_for_file(file_path: str):
         return GSheetInputReader
     raise ValueError("Unsupported input format")
 
-def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_error: callable):
+def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_error: callable, on_progress: callable = None):
     """
     Runs the ingestion pipeline in a background thread.
     - Creates deck in DECKS
     - Maps fields to DECK_FIELDS
     - Creates dynamic table
     - Batch inserts data from file
-    - Generates audio (TODO)
+    - Generates audio
     """
     def task():
         try:
+            if on_progress: on_progress(5, "Initializing Database...")
             # 1. Generate UUID for table name
             table_name = str(uuid.uuid4()).replace("-", "") + "_deck"
             
@@ -39,10 +40,9 @@ def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_
             deck_id = deck_repository.create_deck(deck_name, table_name)
             
             # 3. Prepare fields mapping
-            # fields dict has key as field_name (e.g. 'expression'), value has 'name' (header) and 'template_field_id'
             fields_for_db = []
             dynamic_columns = []
-            header_to_field = {} # Maps Excel header -> dynamic column name (which is the template field name)
+            header_to_field = {}
             
             for field_name, f_data in fld_mapping["fields"].items():
                 fields_for_db.append({
@@ -64,6 +64,7 @@ def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_
             # 5. Create Dynamic Table
             deck_repository.create_dynamic_table(table_name, dynamic_columns)
             
+            if on_progress: on_progress(15, "Reading input file...")
             # 6. Read Data using direct extraction
             file_path = gen_config["input_file_path"]
             input_type = gen_config["input_type"]
@@ -113,16 +114,14 @@ def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_
                                 data_rows.append(row_dict)
                 wb.close()
             
+            if on_progress: on_progress(35, "Saving text data to database...")
             # 7. Batch insert data to dynamic table
-            # Extract values based on mapped headers
             insert_rows = []
             col_names = [col["name"] for col in dynamic_columns]
             
             for row_dict in data_rows:
-                # row_dict keys are the actual spreadsheet headers
                 row_tuple = []
                 for col_name in col_names:
-                    # find the header that maps to this col_name
                     target_header = next((h for h, f in header_to_field.items() if f == col_name), None)
                     val = row_dict.get(target_header, "")
                     row_tuple.append(str(val))
@@ -133,7 +132,7 @@ def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_
             # 8. Audio generation
             audio_cols = [col["name"] for col in dynamic_columns if col["audio_generated"]]
             if audio_cols:
-                # Create media folder
+                if on_progress: on_progress(40, "Preparing audio generation...")
                 from backend.config import app_config
                 work_dir = app_config.get_work_dir()
                 media_dir = os.path.join(work_dir, table_name, "media")
@@ -143,8 +142,9 @@ def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_
                 from uuid import uuid4
                 from datetime import datetime
                 
-                # Fetch all rows to process audio
-                # Fetching the newly inserted rows by ID
+                total_records = len(insert_rows)
+                processed_records = 0
+                
                 for batch in deck_repository.fetch_data_batch(table_name, 100):
                     updates = {col: [] for col in audio_cols}
                     for row in batch:
@@ -156,27 +156,26 @@ def run_ingestion(gen_config: dict, fld_mapping: dict, on_success: callable, on_
                                 suffix = datetime.now().strftime('%Y%m%d%H%M%S')
                                 filename = f"{prefix}{suffix}.mp3"
                                 
-                                # Generate speech
                                 speech.text_to_speech(text_val, filename, audio_folder_path=media_dir)
-                                
-                                # Add to updates list
                                 updates[col].append((filename, row_id))
+                                
+                        processed_records += 1
+                        if on_progress:
+                            # scale from 40% to 95%
+                            progress_val = 40 + int((processed_records / total_records) * 55)
+                            on_progress(progress_val, f"Generating Audio ({processed_records}/{total_records})...")
                     
-                    # Batch update for this batch
                     for col, update_list in updates.items():
                         if update_list:
                             deck_repository.batch_update_audio(table_name, f"{col}_$", update_list)
             
-            # 9. Return success with the deck config needed for export
+            if on_progress: on_progress(100, "Finalizing...")
             export_context = {
                 "deck_id": deck_id,
                 "table_name": table_name,
                 "deck_name": deck_name,
                 "template_id": gen_config["template_id"]
             }
-            
-            # We don't need to pass the media directory to the export anymore,
-            # because the media directory is fixed as work_dir/table_name/media
             
             on_success(export_context)
             

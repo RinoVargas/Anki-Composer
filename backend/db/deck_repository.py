@@ -131,9 +131,43 @@ def get_deck_fields_mapping(deck_id: int) -> dict:
     for r in rows:
         field_name = r[0]
         mapped_header = r[1]
-        # In the sqlite table, the column name is exactly the field_name!
         fields[field_name] = {
-            "name": field_name, # Map to the dynamic column name, not the original spreadsheet header
+            "name": field_name,
             "generate_audio_file": bool(r[2])
         }
     return fields
+
+def get_all_decks() -> List[Dict[str, Any]]:
+    """Returns all decks from the DECKS table."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, deck_name, table_name FROM DECKS ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def count_deck_records(table_name: str) -> int:
+    """Counts the total number of records in the dynamic table."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT COUNT(*) FROM \"{table_name}\"")
+        count = cursor.fetchone()[0]
+    except sqlite3.OperationalError:
+        count = 0
+    conn.close()
+    return count
+
+def fetch_data_page(table_name: str, limit: int, offset: int) -> List[Dict[str, Any]]:
+    """Fetches a specific page of data from the dynamic table."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT * FROM \"{table_name}\" ORDER BY id ASC LIMIT ? OFFSET ?", (limit, offset))
+        rows = cursor.fetchall()
+    except sqlite3.OperationalError:
+        rows = []
+    conn.close()
+    return [dict(r) for r in rows]
