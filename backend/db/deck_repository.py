@@ -171,3 +171,26 @@ def fetch_data_page(table_name: str, limit: int, offset: int) -> List[Dict[str, 
         rows = []
     conn.close()
     return [dict(r) for r in rows]
+
+def delete_deck(deck_id: int, table_name: str):
+    """
+    Deletes the deck and its dynamic table from the database.
+    Due to ON DELETE CASCADE, DECK_FIELDS will be automatically removed.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Enable foreign keys to ensure cascading works properly
+    cursor.execute("PRAGMA foreign_keys = ON;")
+    
+    # 1. Drop dynamic table
+    try:
+        cursor.execute(f"DROP TABLE IF EXISTS \"{table_name}\"")
+    except Exception as e:
+        pass
+        
+    # 2. Delete deck from DECKS table (this cascades DECK_FIELDS)
+    cursor.execute("DELETE FROM DECKS WHERE id = ?", (deck_id,))
+    
+    conn.commit()
+    conn.close()

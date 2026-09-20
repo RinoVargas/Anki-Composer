@@ -41,6 +41,9 @@ class DecksTab(ttk.Frame):
         self.btn_view_detail = ttk.Button(buttons_frame, text="Ver Detalle", bootstyle=INFO, command=self._on_view_detail_click, state=DISABLED)
         self.btn_view_detail.pack(side=RIGHT)
         
+        self.btn_delete_deck = ttk.Button(buttons_frame, text="Eliminar Deck", bootstyle=DANGER, command=self._on_delete_deck_click, state=DISABLED)
+        self.btn_delete_deck.pack(side=RIGHT, padx=10)
+        
         self.tree_decks = ttk.Treeview(self.list_view, columns=("id", "deck_name"), show="headings", height=15)
         self.tree_decks.heading("id", text="ID")
         self.tree_decks.heading("deck_name", text="Deck Name")
@@ -94,6 +97,7 @@ class DecksTab(ttk.Frame):
         self.list_view.pack(fill=BOTH, expand=True)
         self.current_deck = None
         self.btn_view_detail.config(state=DISABLED)
+        self.btn_delete_deck.config(state=DISABLED)
         # Clear selection so user has to click again
         self.tree_decks.selection_remove(self.tree_decks.selection())
         self.update_idletasks()
@@ -202,8 +206,10 @@ class DecksTab(ttk.Frame):
         selection = self.tree_decks.selection()
         if selection:
             self.btn_view_detail.config(state=NORMAL)
+            self.btn_delete_deck.config(state=NORMAL)
         else:
             self.btn_view_detail.config(state=DISABLED)
+            self.btn_delete_deck.config(state=DISABLED)
 
     def _on_view_detail_click(self):
         selection = self.tree_decks.selection()
@@ -314,3 +320,71 @@ class DecksTab(ttk.Frame):
             self._hidden_cells = {k for k in self._hidden_cells if k[1] != col_name}
         
         self.load_records_page()
+
+    def _on_delete_deck_click(self):
+        selection = self.tree_decks.selection()
+        if not selection:
+            return
+            
+        item = self.tree_decks.item(selection[0])
+        deck_id = int(item["values"][0])
+        deck_name = item["values"][1]
+        table_name = item["tags"][0]
+        
+        from tkinter import messagebox
+        import tkinter as tk
+        if not messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro que deseas eliminar el deck '{deck_name}'?\n\nEsta acción eliminará todos los audios, la tabla de datos y los registros de configuración, y no se puede deshacer."):
+            return
+            
+        progress_win = tk.Toplevel(self)
+        progress_win.title("Eliminando Deck")
+        progress_win.geometry("400x150")
+        progress_win.resizable(False, False)
+        progress_win.transient(self)
+        progress_win.grab_set()
+        
+        ttk.Label(progress_win, text=f"Eliminando '{deck_name}'...", font=("Helvetica", 12)).pack(pady=10)
+        lbl_status = ttk.Label(progress_win, text="Iniciando...")
+        lbl_status.pack(pady=5)
+        
+        progress_var = tk.IntVar(value=0)
+        pb = ttk.Progressbar(progress_win, maximum=100, variable=progress_var, mode="determinate", length=300)
+        pb.pack(pady=10)
+        
+        def run_deletion():
+            import time
+            from backend.config import app_config
+            import shutil
+            import os
+            
+            self.after(0, lambda: [progress_var.set(20), lbl_status.config(text="Eliminando archivos multimedia...")])
+            time.sleep(0.5)
+            
+            work_dir = app_config.get_work_dir()
+            deck_dir = os.path.join(work_dir, table_name)
+            if os.path.exists(deck_dir):
+                shutil.rmtree(deck_dir)
+                
+            self.after(0, lambda: [progress_var.set(60), lbl_status.config(text="Eliminando base de datos...")])
+            time.sleep(0.5)
+            
+            deck_repository.delete_deck(deck_id, table_name)
+            
+            self.after(0, lambda: [progress_var.set(100), lbl_status.config(text="Finalizado")])
+            time.sleep(0.2)
+            
+            self.after(0, on_success)
+            
+        def on_success():
+            progress_win.destroy()
+            self.load_decks()
+            self.btn_delete_deck.config(state=DISABLED)
+            self.btn_view_detail.config(state=DISABLED)
+            
+            total_decks = deck_repository.get_all_decks()
+            if not total_decks:
+                self.master.tab(0, state="disabled")
+                self.master.select(1)
+                
+        import threading
+        threading.Thread(target=run_deletion, daemon=True).start()

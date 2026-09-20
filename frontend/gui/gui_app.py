@@ -17,6 +17,7 @@ from backend.db import database
 class AnkiComposerGUI(ttk.Window):
     def __init__(self):
         super().__init__(themename="darkly", title="Anki Composer", size=(800, 700))
+        self.bind("<Configure>", self._on_window_configure)
         
         if app_config.is_configured():
             try:
@@ -28,6 +29,20 @@ class AnkiComposerGUI(ttk.Window):
                 self._build_setup_ui()
         else:
             self._build_setup_ui()
+
+    def _on_window_configure(self, event):
+        # Prevent floating dropdown menus when window is moved
+        if event.widget == self:
+            def close_all_comboboxes(widget):
+                for child in widget.winfo_children():
+                    if isinstance(child, ttk.Combobox):
+                        try:
+                            # Explicitly call the native Tcl proc to close the popdown
+                            self.tk.call('ttk::combobox::Unpost', child._w)
+                        except Exception:
+                            pass
+                    close_all_comboboxes(child)
+            close_all_comboboxes(self)
 
     def _build_setup_ui(self):
         self.setup_frame = ttk.Frame(self)
@@ -95,7 +110,9 @@ class AnkiComposerGUI(ttk.Window):
         from backend.compose.ingestion import run_ingestion
         
         # Create progress window
-        progress_win = ttk.Toplevel(self, title="Generating Deck")
+        import tkinter as tk
+        progress_win = tk.Toplevel(self)
+        progress_win.title("Generating Deck")
         progress_win.geometry("400x150")
         progress_win.resizable(False, False)
         progress_win.transient(self)
